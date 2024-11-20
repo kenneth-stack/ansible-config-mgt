@@ -1,0 +1,2 @@
+timezone: 'America/New_York'  # Change timezone as needed
+scripts_dir: '/opt/scripts'   # Change scripts directory if desired

@@ -1,0 +1,90 @@
+---
+- name: Update and configure servers
+  hosts: all  # Target all servers
+  become: yes
+  vars:
+    timezone: 'UTC'  # Change this to your desired timezone
+    scripts_dir: '/opt/scripts'  # Directory for shell scripts
+    
+  tasks:
+    # Update package cache based on OS family
+    - name: Update apt repo (Ubuntu)
+      apt:
+        update_cache: yes
+      when: ansible_os_family == "Debian"  # For Ubuntu servers
+
+    - name: Update yum repo (RHEL)
+      yum:
+        update_cache: yes
+      when: ansible_os_family == "RedHat"  # For RHEL servers
+
+    # Install packages based on OS family
+    - name: Install packages on Ubuntu
+      apt:
+        name: wireshark
+        state: latest
+      when: ansible_os_family == "Debian"
+
+    - name: Install packages on RHEL
+      yum:
+        name: wireshark
+        state: latest
+      when: ansible_os_family == "RedHat"
+
+    # Create directory (works on both OS types)
+    - name: Create makeshift directory
+      file:
+        path: ~/makeshift
+        state: directory
+        mode: '0755'
+
+    - name: Create test.yml file
+      copy:
+        content: |
+          # This is a test file
+          key1: value1
+          key2: value2
+        dest: ~/makeshift/test.yml
+        mode: '0644'
+
+    # Set timezone (works on both OS types)
+    - name: Set timezone
+      timezone:
+        name: "{{ timezone }}"
+
+    # Creating and running shell scripts (works on both OS types)
+    - name: Create scripts directory
+      file:
+        path: "{{ scripts_dir }}"
+        state: directory
+        mode: '0755'
+
+    - name: Create system check script
+      copy:
+        content: |
+          #!/bin/bash
+          echo "Running system checks..."
+          echo "OS Type: $(cat /etc/os-release | grep PRETTY_NAME)"
+          df -h
+          free -m
+          uptime
+        dest: "{{ scripts_dir }}/system_check.sh"
+        mode: '0755'
+
+    - name: Create backup script
+      copy:
+        content: |
+          #!/bin/bash
+          backup_dir="/backup/$(date +%Y%m%d)"
+          mkdir -p $backup_dir
+          echo "Starting backup to $backup_dir..."
+        dest: "{{ scripts_dir }}/backup.sh"
+        mode: '0755'
+
+    - name: Execute system check script
+      shell: "{{ scripts_dir }}/system_check.sh"
+      register: system_check_output
+
+    - name: Display system check results
+      debug:
+        var: system_check_output.stdout_lines
