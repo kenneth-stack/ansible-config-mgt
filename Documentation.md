@@ -466,7 +466,7 @@ Run the playbook command:
 ```sh
 ansible-playbook -i inventory/dev.yml playbooks/common.yml
 ```
-![](/images/Screenshot%20(667).png)
+![](/images/Screenshot%20(667).pngx)
 
 
 This command does the following:
