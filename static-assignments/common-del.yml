@@ -1,0 +1,25 @@
+---
+- name: Remove Wireshark from web, nfs, and db servers
+  hosts: webservers, nfs, db
+  remote_user: ec2-user
+  become: yes
+  become_user: root
+  tasks:
+    - name: Delete Wireshark on RHEL/CentOS servers
+      yum:
+        name: wireshark
+        state: removed
+      when: ansible_facts['pkg_mgr'] == "yum"
+
+- name: Remove Wireshark from LB server
+  hosts: lb
+  remote_user: ubuntu
+  become: yes
+  become_user: root
+  tasks:
+    - name: Delete Wireshark on Ubuntu/Debian servers
+      apt:
+        name: wireshark
+        state: absent
+        purge: yes
+      when: ansible_facts['pkg_mgr'] == "apt"
